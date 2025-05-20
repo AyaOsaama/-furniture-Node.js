@@ -1,0 +1,1220 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Furniture API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          {
+            "name": "userName",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "email",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "password",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "phone",
+            "in": "formData",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "address",
+            "in": "formData",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "type": "file",
+            "required": false
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User registered successfully"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login user",
+        "consumes": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": { "type": "string" },
+                "password": { "type": "string" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          }
+        }
+      }
+    },
+    "/auth/refreshToken": {
+      "post": {
+        "summary": "Refresh authentication token",
+        "consumes": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "refreshToken": { "type": "string" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token refreshed successfully"
+          }
+        }
+      }
+    },
+    "/auth/verify/{token}": {
+      "get": {
+        "summary": "Verify email",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email verified successfully"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Logout user",
+        "responses": {
+          "200": {
+            "description": "Logout successful"
+          }
+        }
+      }
+    },
+    "/users/": {
+      "get": {
+        "summary": "Get all users",
+        "responses": {
+          "200": {
+            "description": "List of all users"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Get user by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User details"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete user by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update user by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User updated successfully"
+          }
+        }
+      }
+    },
+    "/users/changePassword": {
+      "patch": {
+        "summary": "Change user password",
+        "consumes": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "oldPassword": { "type": "string" },
+                "newPassword": { "type": "string" },
+                "confirmPassword": { "type": "string" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Password changed successfully"
+          }
+        }
+      }
+    },
+    "/products/": {
+  "get": {
+    "summary": "Get all products",
+    "responses": {
+      "200": {
+        "description": "List of all products"
+      }
+    }
+  },
+  "post": {
+    "summary": "Create a new product",
+    "consumes": ["multipart/form-data"],
+    "parameters": [
+      {
+        "in": "formData",
+        "name": "image",
+        "type": "file",
+        "required": false
+      },
+      {
+        "in": "formData",
+        "name": "description.en",
+        "type": "string",
+        "required": true
+      },
+      {
+        "in": "formData",
+        "name": "description.ar",
+        "type": "string",
+        "required": true
+      },
+      {
+        "in": "formData",
+        "name": "material.en",
+        "type": "string"
+      },
+      {
+        "in": "formData",
+        "name": "material.ar",
+        "type": "string"
+      },
+      {
+        "in": "formData",
+        "name": "brand",
+        "type": "string"
+      },
+      {
+        "in": "formData",
+        "name": "categories.main",
+        "type": "string"
+      },
+      {
+        "in": "formData",
+        "name": "categories.sub",
+        "type": "string"
+      }
+    ],
+    "responses": {
+      "201": {
+        "description": "Product created successfully"
+      }
+    }
+  }
+},
+"/products/{id}": {
+  "get": {
+    "summary": "Get product by ID",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "type": "string"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Product details"
+      }
+    }
+  },
+  "patch": {
+    "summary": "Update product",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/Product"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Product updated successfully"
+      }
+    }
+  },
+  "delete": {
+    "summary": "Delete product",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "type": "string"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Product deleted successfully"
+      }
+    }
+  }
+},
+"/products/{id}/variants": {
+  "post": {
+    "summary": "Add a product variant",
+    "consumes": ["multipart/form-data"],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "in": "formData",
+        "name": "name.en",
+        "type": "string",
+        "required": true
+      },
+      {
+        "in": "formData",
+        "name": "name.ar",
+        "type": "string",
+        "required": true
+      },
+      {
+        "in": "formData",
+        "name": "price",
+        "type": "number",
+        "required": true
+      },
+      {
+        "in": "formData",
+        "name": "discountPrice",
+        "type": "number"
+      },
+      {
+        "in": "formData",
+        "name": "color.en",
+        "type": "string"
+      },
+      {
+        "in": "formData",
+        "name": "color.ar",
+        "type": "string"
+      },
+      {
+        "in": "formData",
+        "name": "inStock",
+        "type": "number"
+      },
+      {
+        "in": "formData",
+        "name": "image",
+        "type": "file"
+      },
+      {
+        "in": "formData",
+        "name": "images",
+        "type": "file",
+        "collectionFormat": "multi"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Variant added successfully"
+      }
+    }
+  }
+},
+"/products/{id}/variants/{variantId}": {
+  "patch": {
+    "summary": "Update a product variant",
+    "consumes": ["multipart/form-data"],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "in": "path",
+        "name": "variantId",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "in": "formData",
+        "name": "price",
+        "type": "number"
+      },
+      {
+        "in": "formData",
+        "name": "discountPrice",
+        "type": "number"
+      },
+      {
+        "in": "formData",
+        "name": "image",
+        "type": "file"
+      },
+      {
+        "in": "formData",
+        "name": "images",
+        "type": "file",
+        "collectionFormat": "multi"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Variant updated successfully"
+      }
+    }
+  },
+  "delete": {
+    "summary": "Delete a product variant",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "in": "path",
+        "name": "variantId",
+        "required": true,
+        "type": "string"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Variant deleted successfully"
+      }
+    }
+  }
+},
+"/categories/": {
+  "get": {
+    "summary": "Get all categories",
+    "responses": {
+      "200": {
+        "description": "List of categories"
+      }
+    }
+  },
+  "post": {
+    "summary": "Create a new category",
+    "consumes": ["multipart/form-data"],
+    "parameters": [
+      {
+        "in": "formData",
+        "name": "image",
+        "type": "file"
+      },
+      {
+        "in": "formData",
+        "name": "name.en",
+        "type": "string",
+        "required": true
+      },
+      {
+        "in": "formData",
+        "name": "name.ar",
+        "type": "string",
+        "required": true
+      },
+      {
+        "in": "formData",
+        "name": "description.en",
+        "type": "string"
+      },
+      {
+        "in": "formData",
+        "name": "description.ar",
+        "type": "string"
+      },
+      {
+        "in": "formData",
+        "name": "subcategoriesId",
+        "type": "string",
+        "description": "JSON array of subcategory IDs"
+      }
+    ],
+    "responses": {
+      "201": {
+        "description": "Category created successfully"
+      }
+    }
+  }
+},
+"/categories/{id}": {
+  "get": {
+    "summary": "Get category by ID",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Category details"
+      }
+    }
+  },
+  "put": {
+    "summary": "Update category",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "type": "string",
+        "required": true
+      },
+      {
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/Category"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Category updated successfully"
+      }
+    }
+  },
+  "delete": {
+    "summary": "Delete category",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "responses": {
+      "204": {
+        "description": "Category deleted successfully"
+      }
+    }
+  }
+},
+"/subcategories/": {
+  "get": {
+    "summary": "Get all subcategories",
+    "responses": {
+      "200": {
+        "description": "List of subcategories"
+      }
+    }
+  },
+  "post": {
+    "summary": "Create a new subcategory",
+    "consumes": ["application/json"],
+    "parameters": [
+      {
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/Subcategory"
+        }
+      }
+    ],
+    "responses": {
+      "201": {
+        "description": "Subcategory created successfully"
+      }
+    }
+  }
+},
+"/subcategories/{id}": {
+  "get": {
+    "summary": "Get subcategory by ID",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Subcategory details"
+      }
+    }
+  },
+  "put": {
+    "summary": "Update subcategory",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "type": "string",
+        "required": true
+      },
+      {
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/Subcategory"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Subcategory updated successfully"
+      }
+    }
+  },
+  "delete": {
+    "summary": "Delete subcategory",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "responses": {
+      "204": {
+        "description": "Subcategory deleted successfully"
+      }
+    }
+  }
+},
+"/cart/": {
+  "post": {
+    "summary": "Add item to cart",
+    "consumes": ["application/json"],
+    "parameters": [
+      {
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "productId": { "type": "string" },
+            "quantity": { "type": "integer" },
+            "priceAtAddition": { "type": "number" }
+          }
+        }
+      }
+    ],
+    "responses": {
+      "201": {
+        "description": "Item added to cart"
+      }
+    }
+  },
+  "get": {
+    "summary": "Get user's cart",
+    "responses": {
+      "200": {
+        "description": "Cart retrieved"
+      }
+    }
+  }
+},
+"/cart/{cartProductId}": {
+  "patch": {
+    "summary": "Update quantity of item in cart",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "cartProductId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "quantity": { "type": "integer" }
+          }
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Cart item updated"
+      }
+    }
+  },
+  "delete": {
+    "summary": "Delete item from cart",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "cartProductId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Cart item deleted"
+      }
+    }
+  }
+},
+"/cart/clear": {
+  "delete": {
+    "summary": "Clear user's cart",
+    "responses": {
+      "200": {
+        "description": "Cart cleared"
+      }
+    }
+  }
+},
+"/orders/": {
+  "post": {
+    "summary": "Create new order from cart",
+    "consumes": ["application/json"],
+    "parameters": [
+      {
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "shippingAddress": { "type": "string" },
+            "paymentMethod": {
+              "type": "string",
+              "enum": ["credit_card", "paypal", "cash_on_delivery"]
+            }
+          }
+        }
+      }
+    ],
+    "responses": {
+      "201": {
+        "description": "Order created successfully"
+      }
+    }
+  },
+  "get": {
+    "summary": "Get orders for logged-in user",
+    "responses": {
+      "200": {
+        "description": "Orders retrieved"
+      }
+    }
+  }
+},
+"/orders/{orderId}": {
+  "get": {
+    "summary": "Get order by ID",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "orderId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Order details retrieved"
+      }
+    }
+  },
+  "patch": {
+    "summary": "Update order status",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "orderId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["pending", "shipped", "delivered", "cancelled"]
+            },
+            "paymentStatus": {
+              "type": "string",
+              "enum": ["pending", "paid", "failed", "unpaid"]
+            }
+          }
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Order updated"
+      }
+    }
+  }
+},
+"/orders/all": {
+  "get": {
+    "summary": "Get all orders (admin only)",
+    "responses": {
+      "200": {
+        "description": "All orders retrieved"
+      }
+    }
+  }
+},
+"/posts/": {
+  "get": {
+    "summary": "Get all posts",
+    "responses": {
+      "200": { "description": "List of posts" }
+    }
+  },
+  "post": {
+    "summary": "Create a new post",
+    "consumes": ["multipart/form-data"],
+    "parameters": [
+      { "in": "formData", "name": "image", "type": "file", "required": false },
+      { "in": "formData", "name": "title", "type": "string", "required": true },
+      { "in": "formData", "name": "description", "type": "string" },
+      { "in": "formData", "name": "content", "type": "string" },
+      { "in": "formData", "name": "author", "type": "string" }
+    ],
+    "responses": {
+      "201": { "description": "Post created" }
+    }
+  }
+},
+"/posts/{id}": {
+  "get": {
+    "summary": "Get post by ID",
+    "parameters": [
+      { "in": "path", "name": "id", "type": "string", "required": true }
+    ],
+    "responses": {
+      "200": { "description": "Post found" }
+    }
+  },
+  "put": {
+    "summary": "Update post by ID",
+    "parameters": [
+      { "in": "path", "name": "id", "type": "string", "required": true },
+      {
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "content": { "type": "string" },
+            "author": { "type": "string" }
+          }
+        }
+      }
+    ],
+    "responses": {
+      "200": { "description": "Post updated" }
+    }
+  },
+  "delete": {
+    "summary": "Delete post",
+    "parameters": [
+      { "in": "path", "name": "id", "type": "string", "required": true }
+    ],
+    "responses": {
+      "204": { "description": "Post deleted" }
+    }
+  }
+},
+"/posts/like/{id}": {
+  "put": {
+    "summary": "Like or unlike post",
+    "parameters": [
+      { "in": "path", "name": "id", "type": "string", "required": true },
+      {
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "userId": { "type": "string" },
+            "username": { "type": "string" }
+          }
+        }
+      }
+    ],
+    "responses": {
+      "200": { "description": "Post liked or unliked" }
+    }
+  }
+},
+"/posts/comment/{id}": {
+  "post": {
+    "summary": "Add comment to post",
+    "parameters": [
+      { "in": "path", "name": "id", "type": "string", "required": true },
+      {
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "userId": { "type": "string" },
+            "username": { "type": "string" },
+            "comment": { "type": "string" }
+          }
+        }
+      }
+    ],
+    "responses": {
+      "200": { "description": "Comment added" }
+    }
+  },
+  "delete": {
+    "summary": "Delete comment from post",
+    "parameters": [
+      { "in": "path", "name": "id", "type": "string", "required": true },
+      { "in": "path", "name": "commentId", "type": "string", "required": true }
+    ],
+    "responses": {
+      "200": { "description": "Comment deleted" }
+    }
+  }
+},
+"/ratings/": {
+  "get": {
+    "summary": "Get all ratings",
+    "responses": {
+      "200": { "description": "All ratings" }
+    }
+  },
+  "post": {
+    "summary": "Create a new rating",
+    "consumes": ["application/json"],
+    "parameters": [
+      {
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "userId": { "type": "string" },
+            "value": { "type": "integer", "minimum": 1, "maximum": 5 },
+            "comment": { "type": "string" }
+          }
+        }
+      }
+    ],
+    "responses": {
+      "201": { "description": "Rating created" }
+    }
+  }
+},
+"/ratings/{id}": {
+  "get": {
+    "summary": "Get rating by ID",
+    "parameters": [
+      { "in": "path", "name": "id", "type": "string", "required": true }
+    ],
+    "responses": {
+      "200": { "description": "Rating found" }
+    }
+  },
+  "delete": {
+    "summary": "Delete rating by ID",
+    "parameters": [
+      { "in": "path", "name": "id", "type": "string", "required": true }
+    ],
+    "responses": {
+      "204": { "description": "Rating deleted" }
+    }
+  }
+},
+"/wishlist/": {
+  "get": {
+    "summary": "Get user's wishlist",
+    "responses": {
+      "200": { "description": "Wishlist retrieved" }
+    }
+  },
+  "post": {
+    "summary": "Add product to wishlist",
+    "consumes": ["application/json"],
+    "parameters": [
+      {
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "productId": { "type": "string" }
+          }
+        }
+      }
+    ],
+    "responses": {
+      "200": { "description": "Product added to wishlist" }
+    }
+  }
+},
+"/wishlist/toggle": {
+  "post": {
+    "summary": "Toggle wishlist item (add/remove)",
+    "parameters": [
+      {
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "productId": { "type": "string" }
+          }
+        }
+      }
+    ],
+    "responses": {
+      "200": { "description": "Wishlist toggled" }
+    }
+  }
+},
+"/wishlist/{productId}": {
+  "delete": {
+    "summary": "Remove product from wishlist",
+    "parameters": [
+      { "in": "path", "name": "productId", "type": "string", "required": true }
+    ],
+    "responses": {
+      "200": { "description": "Product removed from wishlist" }
+    }
+  }
+}
+
+
+
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "userName": {
+            "type": "object",
+            "properties": {
+              "en": { "type": "string" },
+              "ar": { "type": "string" }
+            }
+          },
+          "email": { "type": "string" },
+          "password": { "type": "string" },
+          "image": { "type": "string" },
+          "role": {
+            "type": "string",
+            "enum": ["super_admin", "admin", "user"]
+          },
+          "phone": { "type": "string" },
+          "address": {
+            "type": "object",
+            "properties": {
+              "en": { "type": "string" },
+              "ar": { "type": "string" }
+            }
+          },
+          "wishlist": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "ispurchased": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "isVerified": { "type": "boolean" },
+          "verificationToken": { "type": "string" }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "object",
+            "properties": {
+              "en": { "type": "string" },
+              "ar": { "type": "string" }
+            }
+          },
+          "description": {
+            "type": "object",
+            "properties": {
+              "en": { "type": "string" },
+              "ar": { "type": "string" }
+            }
+          },
+          "image": { "type": "string" },
+          "subcategoriesId": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "Subcategory": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "object",
+            "properties": {
+              "en": { "type": "string" },
+              "ar": { "type": "string" }
+            }
+          },
+          "categoriesId": { "type": "string" },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+       "Order": {
+        "type": "object",
+        "properties": {
+          "userId": { "type": "string" },
+          "products": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "productId": { "type": "string" },
+                "quantity": { "type": "number" },
+                "priceAtPurchase": { "type": "number" }
+              }
+            }
+          },
+          "shippingAddress": { "type": "string" },
+          "paymentMethod": {
+            "type": "string",
+            "enum": ["credit_card", "paypal", "cash_on_delivery"]
+          },
+          "paymentStatus": {
+            "type": "string",
+            "enum": ["pending", "paid", "failed", "unpaid"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "shipped", "delivered", "cancelled"]
+          }
+        }
+      }
+    }
+  }
+}
