@@ -22,8 +22,8 @@ exports.register = catchAsync(async (req, res, next) => {
     return res.status(400).json({ message: "Email already exists" });
   }
 
-  const parsedUserName = userName ? JSON.parse(userName) : { en: '', ar: '' };
-  const parsedAddress = address ? JSON.parse(address) : { en: '', ar: '' };
+  const parsedUserName = typeof userName === 'string' ? JSON.parse(userName) : userName;
+const parsedAddress = typeof address === 'string' ? JSON.parse(address) : { en: '', ar: '' };
 
   const newUser = await userModel.create({
     userName: parsedUserName,
@@ -62,31 +62,6 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
 
   res.status(200).json({ message: "Email verified successfully!" });
 });
-// exports.verifyEmail = catchAsync(async (req, res, next) => {
-//   const { token } = req.params;
-
-//   const user = await userModel.findOne({ verificationToken: token });
-//   if (!user) {
-//     return res.status(400).json({ message: "Invalid or expired verification token." });
-//   }
-
-//   user.isVerified = true;
-//   user.verificationToken = undefined;
-
-//   const phone = user.phone ? decrypt(user.phone) : null;
-//   const address = {
-//     en: user.address?.en ? decrypt(user.address.en) : null,
-//     ar: user.address?.ar ? decrypt(user.address.ar) : null,
-//   };
-
-//   await user.save();
-
-//   res.status(200).json({ 
-//     message: "Email verified successfully!",
-//     phone,
-//     address
-//   });
-// });
 
 exports.login = catchAsync(async (req, res, next) => {
   //  let{email,password}= req.body;
@@ -136,10 +111,12 @@ exports.login = catchAsync(async (req, res, next) => {
     refreshToken,
     user: {
       id: user._id,
-      name: user.userName,
+  name: user.userName?.en || user.userName?.ar,
       email: user.email,
       image: user.image,
       role: user.role,
+      phone:user.phone
+
     },
   });
   

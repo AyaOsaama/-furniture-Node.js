@@ -83,7 +83,7 @@ exports.updateUserById = catchAsync(async (req, res, next) => {
 
 
 exports.changePassword = catchAsync(async (req, res, next) => {
-  const id = req.id;
+const id = req.user.id || req.user._id || req.id;
   const { oldPassword, newPassword, confirmPassword } = req.body;
 
   const user = await userModel.findById(id);
@@ -114,4 +114,52 @@ exports.changePassword = catchAsync(async (req, res, next) => {
 exports.getAllUsersCount = catchAsync(async (req, res, next) => {
   const count = await userModel.countDocuments(); 
   res.status(200).json({ totalUsers: count });
+});
+
+exports.updateMe = catchAsync(async (req, res, next) => {
+  const id = req.user.id || req.user._id || req.id; // تأكد من طريقة استخراج id من ال auth middleware
+
+  let { phone, address, userName, ...rest } = req.body;
+
+  try {
+    if (typeof userName === "string") userName = JSON.parse(userName);
+    if (typeof address === "string") address = JSON.parse(address);
+  } catch (err) {
+    return next(new ApiError(400, "Invalid JSON in userName or address"));
+  }
+
+  if (phone && !/^(011|010|012|015)[0-9]{8}$/.test(phone)) {
+    return next(new ApiError(400, "Invalid phone number format"));
+  }
+
+  if (address?.en && address.en.length < 2) {
+    return next(new ApiError(400, "Address (EN) must be at least 2 characters"));
+  }
+
+  if (address?.ar && address.ar.length < 2) {
+    return next(new ApiError(400, "Address (AR) must be at least 2 characters"));
+  }
+
+  const updatedData = { ...rest };
+  if (phone) updatedData.phone = phone;
+  if (address?.en) updatedData["address.en"] = address.en;
+  if (address?.ar) updatedData["address.ar"] = address.ar;
+  if (userName?.en) updatedData["userName.en"] = userName.en;
+  if (userName?.ar) updatedData["userName.ar"] = userName.ar;
+
+  if (req.file && req.file.buffer) {
+    const imageUrl = await uploadBufferToCloudinary(req.file.buffer, 'users');
+    updatedData.image = imageUrl;
+  }
+
+  const updatedUser = await userModel.findByIdAndUpdate(id, updatedData, {
+    new: true,
+    runValidators: false,
+  });
+
+  if (!updatedUser) {
+    return next(new ApiError(404, "User not found"));
+  }
+
+  res.status(200).json({ message: "User updated successfully", user: updatedUser.toObject() });
 });

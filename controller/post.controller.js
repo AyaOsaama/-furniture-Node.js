@@ -30,7 +30,7 @@ exports.getAllPosts = catchAsync(async (req, res) => {
   const features = new QueryFeatures(Post.find(), req.query)
     .search()
     .filter()
-    .paginate();
+    // .paginate();
 
   const posts = await features.query
     .populate("likes.user", "userName email image")
@@ -104,9 +104,10 @@ exports.commentPost = catchAsync(async (req, res) => {
   const post = await Post.findById(req.params.id);
 
   post.comments.push({
-    user: mongoose.Types.ObjectId(userId),
-    comment,
-  });
+  user: new mongoose.Types.ObjectId(userId),
+  comment,
+});
+
   await post.save();
 
   res.status(200).json({ message: "Comment added successfully" });

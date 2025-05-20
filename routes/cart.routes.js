@@ -14,21 +14,22 @@ let {
   getTotalCartItems
 } = require("../controller/cart.controller.js");
 
-//Protect
+// 🛡️ Protect all routes
 router.use(auth);
 
-//EndPoints
-router.post("/", addToCart);
-router.get("/", getCartByUser);
-//Analytics  Endpoints
-router.get('/total-items', getTotalCartItems);
-router.get('/total-value', getTotalCartValue);
-router.get('/top-products', getTopProductsInCart);
-router.get('/users-with-items', getUsersWithCartItems);
-//----------------
-router.patch("/:cartProductId", updateCartProduct);
-router.delete("/:cartProductId", deleteCartProduct);
-router.delete("/clear", clearCart);
+// 🛒 Basic Cart Operations
+router.post("/", addToCart);                           
+router.get("/", getCartByUser);   
+router.delete("/clear", clearCart);                   
+// 📊 Cart Analytics
+router.get("/total-items", getTotalCartItems);        
+router.get("/total-value", getTotalCartValue);        
+router.get("/top-products", getTopProductsInCart);    
+router.get("/users-with-items", getUsersWithCartItems); 
 
+router.patch("/:cartProductId", updateCartProduct);    
+router.delete("/:cartProductId", deleteCartProduct);  
+
+ 
 
 module.exports = router;

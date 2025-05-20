@@ -17,7 +17,7 @@ let {
 } = require("../controller/product.controller.js");
 
 //Protect
-router.use(auth);
+// router.use(auth);
 
 //EndPoints
 router

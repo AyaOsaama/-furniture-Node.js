@@ -11,7 +11,8 @@ let {
   deleteUserById,
   updateUserById,
   changePassword,
-  getAllUsersCount
+  getAllUsersCount,
+  updateMe
 } = require("../controller/user.controller.js");
 const upload = require("../utils/multer.utils.js");
 
@@ -19,6 +20,8 @@ const upload = require("../utils/multer.utils.js");
 router.use(auth);
 
 //EndPoints
+router.patch("/me", upload.single("image"), updateMe);
+
 router.route("/").get(restrictTo("admin", "super_admin"), getAllUser);
 router.route("/count").get( getAllUsersCount);
 

@@ -11,6 +11,6 @@ const {
 router.use(auth);
 
 router.route("/").get(getWishlist).post(addToWishlist);
-router.delete("/:productId", removeFromWishlist);
 router.post("/toggle", toggleWishlist);
+router.delete("/:productId", removeFromWishlist);
 module.exports = router;

@@ -18,16 +18,6 @@ mongoose
   .catch((err) => {
     console.error("Failed to connect to the database:", err);
   });
-//middleware
-// app.use(
-//   cors({
-//     origin: "*",
-//   })
-// );
-// app.use(cors({
-//   origin: 'http://localhost:4200',
-//   credentials: true
-// }));
 app.use(cors())
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
@@ -50,6 +40,8 @@ const subcategoryRoutes = require("./routes/subcategory.routes.js");
 const ratingRoutes = require("./routes/rating.routes.js");
 const postRoutes = require("./routes/post.routes.js");
 const imageRoutes = require('./routes/uploadImage.routes.js')
+const chatbotRoutes = require("./routes/chatbot.routes.js");
+
 app.get('/',(req,res)=>{
   return res.json({message:"Hello"})
 })
@@ -64,6 +56,7 @@ app.use("/subcategories", subcategoryRoutes);
 app.use("/ratings", ratingRoutes);
 app.use("/posts", postRoutes);
 app.use("/upload-image",imageRoutes)
+app.use("/chatbot", chatbotRoutes);
 
 // Not Found middleware
 app.use((req, res, next) => {

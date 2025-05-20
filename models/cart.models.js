@@ -18,7 +18,6 @@ let cartSchema = mongoose.Schema({
     },
     priceAtAddition:{
         type: Number,
-        required: true,
         min: 0
     }
 })
