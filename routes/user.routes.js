@@ -27,7 +27,7 @@ router.route("/count").get( getAllUsersCount);
 
 router
   .route("/:id")
-  .get(restrictTo("admin", "super_admin"), getUserById)
+  .get( getUserById)
   .delete(restrictTo("admin", "super_admin"), deleteUserById)
   .patch(upload.single("image"),restrictTo("admin", "super_admin"),updateUserById);
   
