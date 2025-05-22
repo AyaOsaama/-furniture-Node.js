@@ -88,8 +88,8 @@ exports.getRatingsForProduct = catchAsync(async (req, res) => {
   const { productId } = req.params;
   const userId = req.user?._id;
 
-  // 1. استرجاع التقييمات لهذا المنتج
-  const ratings = await Rating.find({ productId });
+  // 1. استرجاع التقييمات لهذا المنتج مع بيانات المستخدم
+  const ratings = await Rating.find({ productId }).populate("userId", "image name"); // ✅ تم إضافة الاسم والصورة
 
   // 2. التحقق من إمكانية التقييم
   let canRate = false;
@@ -99,7 +99,10 @@ exports.getRatingsForProduct = catchAsync(async (req, res) => {
       paymentStatus: "paid",
       "products.productId": productId,
     });
-    if (order) canRate = true;
+    const alreadyRated = await Rating.findOne({ userId, productId });
+    if (order && !alreadyRated) {
+      canRate = true;
+    }
   }
 
   res.status(200).json({
@@ -107,6 +110,7 @@ exports.getRatingsForProduct = catchAsync(async (req, res) => {
     canRate,
   });
 });
+
 
 exports.getAllRatings = catchAsync(async (req, res) => {
   const totalCount = await Rating.countDocuments();
