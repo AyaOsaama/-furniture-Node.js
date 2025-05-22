@@ -11,7 +11,7 @@ const {
   getRatingDistribution,
   getAverageRating,
   getTotalRatings,
-  deleteCommentFromRating
+  deleteCommentFromRating,getRatingsForProduct
 } = require("../controller/rating.controller.js");
 
 router.post("/",auth, createRating);
@@ -24,6 +24,7 @@ router.get("/distribution", getRatingDistribution);
 router.get("/most-rated-products", getMostRatedProducts);
 router.get("/with-comments", getRatingsWithComments);
 // ------------------------------------------------------
+router.get("/product/:productId", auth, getRatingsForProduct);
 router.get("/:id", getRatingById);
 router.delete("/:id", deleteRating);
 router.patch("/:id/remove-comment",auth, deleteCommentFromRating);

@@ -2,7 +2,9 @@ const Rating = require("../models/rating.model.js");
 const catchAsync = require("../utils/catchAsync.utils");
 const QueryFeatures = require("../utils/queryFeatures.utils.js");
 const Product = require('../models/product.models.js'); 
+const Order = require('../models/order.models.js');
 
+// إنشاء تقييم
 exports.createRating = catchAsync(async (req, res) => {
   const userId = req.user._id; // المستخدم لازم يكون مسجل دخول
   const { productId, value, comment } = req.body;
@@ -20,15 +22,21 @@ exports.createRating = catchAsync(async (req, res) => {
     });
   }
 
-  // ✅ 2. إنشاء التقييم مع التعليق (comment)
+  // ✅ 2. التأكد من أن المستخدم لم يقيّم هذا المنتج مسبقًا
+  const existing = await Rating.findOne({ userId, productId });
+  if (existing) {
+    return res.status(400).json({ message: "You have already rated this product." });
+  }
+
+  // ✅ 3. إنشاء التقييم مع التعليق (comment)
   const newRating = await Rating.create({
     userId,
     productId,
     value,
-    comment, // هيكون object بالشكل: { en: "Nice!", ar: "جيد!" }
+    comment, // { en: "Nice!", ar: "جيد!" }
   });
 
-  // ✅ 3. تحديث متوسط التقييم وعدد التقييمات في المنتج
+  // ✅ 4. تحديث متوسط التقييم وعدد التقييمات في المنتج
   const ratings = await Rating.find({ productId });
 
   const ratingCount = ratings.length;
@@ -43,6 +51,60 @@ exports.createRating = catchAsync(async (req, res) => {
   res.status(201).json({
     message: "Rating created with comment",
     rating: newRating,
+  });
+});
+
+// استرجاع التقييمات لمنتج معين والتحقق إذا المستخدم يقدر يقيّم
+exports.getRatingsForProduct = catchAsync(async (req, res) => {
+  const { productId } = req.params;
+  const userId = req.user?._id;
+
+  // 1. استرجاع التقييمات لهذا المنتج
+  const ratings = await Rating.find({ productId });
+
+  // 2. التحقق من إمكانية التقييم
+  let canRate = false;
+  if (userId) {
+    const order = await Order.findOne({
+      userId,
+      paymentStatus: "paid",
+      "products.productId": productId,
+    });
+
+    const alreadyRated = await Rating.findOne({ userId, productId });
+
+    if (order && !alreadyRated) {
+      canRate = true;
+    }
+  }
+
+  res.status(200).json({
+    ratings,
+    canRate,
+  });
+});
+
+exports.getRatingsForProduct = catchAsync(async (req, res) => {
+  const { productId } = req.params;
+  const userId = req.user?._id;
+
+  // 1. استرجاع التقييمات لهذا المنتج
+  const ratings = await Rating.find({ productId });
+
+  // 2. التحقق من إمكانية التقييم
+  let canRate = false;
+  if (userId) {
+    const order = await Order.findOne({
+      userId,
+      paymentStatus: "paid",
+      "products.productId": productId,
+    });
+    if (order) canRate = true;
+  }
+
+  res.status(200).json({
+    ratings,
+    canRate,
   });
 });
 
