@@ -312,24 +312,28 @@ exports.getRelatedProductsByTags = async (req, res) => {
 
 exports.getProductsByTag = async (req, res) => {
   const { tag } = req.params;
-
   try {
-    // ابحث عن subcategories التي تحوي هذا التاج داخل مصفوفة التاجات
-    const subcategories = await Subcategory.find({ tags: { $in: [tag] } }).select('_id');
+    console.log('Tag:', tag);
+
+    const subcategories = await Subcategory.find({ tags: tag }).select('_id');
+    console.log('Subcategories:', subcategories);
+
     const subcategoryIds = subcategories.map(sub => sub._id);
+    console.log('Subcategory IDs:', subcategoryIds);
 
     if (subcategoryIds.length === 0) {
       return res.status(200).json([]);
     }
 
-    // ابحث عن المنتجات التي تحتوي على أي من هذه الـ subcategories في الحقل categories.sub
     const products = await Product.find({
       'categories.sub': { $in: subcategoryIds }
     });
 
+    console.log('Products:', products.length);
     res.status(200).json(products);
   } catch (err) {
-    console.error('Error getting products by tag:', err);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Error:', err);
+    res.status(500).json({ message: 'Internal server error', error: err.message });
   }
 };
+
