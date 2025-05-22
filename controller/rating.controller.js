@@ -89,7 +89,7 @@ exports.getRatingsForProduct = catchAsync(async (req, res) => {
   const userId = req.user?._id;
 
   // 1. استرجاع التقييمات لهذا المنتج مع بيانات المستخدم
-  const ratings = await Rating.find({ productId }).populate("userId", "image name"); // ✅ تم إضافة الاسم والصورة
+  const ratings = await Rating.find({ productId }).populate("userId", "image userName"); // ✅ تم إضافة الاسم والصورة
 
   // 2. التحقق من إمكانية التقييم
   let canRate = false;
