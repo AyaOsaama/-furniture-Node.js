@@ -50,7 +50,7 @@ exports.getAllRatings = catchAsync(async (req, res) => {
   const totalCount = await Rating.countDocuments();
 
   const features = new QueryFeatures(
-    Rating.find().populate('userId', 'userName email') 
+    Rating.find().populate('userId', 'userName email image') 
                 .populate('productId', 'variants description brand'), 
     req.query
   )
