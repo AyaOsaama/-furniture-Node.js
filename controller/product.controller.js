@@ -3,7 +3,9 @@ const ApiError = require("../utils/ApiError.utils.js");
 const catchAsync = require("../utils/catchAsync.utils.js");
 const QueryFeatures = require("../utils/queryFeatures.utils.js");
 const { uploadBufferToCloudinary } = require("../utils/cloudinary.utils.js");
+// controllers/productController.js
 
+const Subcategory = require("../models/subcategory.model.js");
 
 exports.createProduct = catchAsync(async (req, res, next) => {
   console.log('req.body:', req.body);
@@ -272,4 +274,39 @@ exports.getLowStockVariants = catchAsync(async (req, res) => {
 });
 
 
+
+
+exports.getRelatedProductsByTags = async (req, res) => {
+  try {
+    const { productId } = req.params;
+
+    // 1. Get the current product
+    const currentProduct = await ProductModel.findById(productId);
+    if (!currentProduct) return res.status(404).json({ message: "Product not found" });
+
+    // 2. Get the subcategory and its tags
+    const subcategory = await Subcategory.findById(currentProduct.categories.sub);
+    if (!subcategory || !subcategory.tags || subcategory.tags.length === 0) {
+      return res.json([]); // No tags, return empty list
+    }
+
+    // 3. Get products whose subcategory has at least one common tag
+    const relatedSubcategories = await Subcategory.find({
+      tags: { $in: subcategory.tags }
+    });
+
+    const relatedSubcategoryIds = relatedSubcategories.map(sc => sc._id);
+
+    // 4. Get related products that are not the current product
+    const relatedProducts = await ProductModel.find({
+      _id: { $ne: currentProduct._id },
+      "categories.sub": { $in: relatedSubcategoryIds }
+    });
+
+    res.json(relatedProducts);
+  } catch (error) {
+    console.error("Error fetching related products:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
