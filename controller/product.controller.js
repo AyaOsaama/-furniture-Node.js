@@ -4,6 +4,7 @@ const catchAsync = require("../utils/catchAsync.utils.js");
 const QueryFeatures = require("../utils/queryFeatures.utils.js");
 const { uploadBufferToCloudinary } = require("../utils/cloudinary.utils.js");
 // controllers/productController.js
+const Product = require('../models/product.models.js');  
 
 const Subcategory = require("../models/subcategory.model.js");
 
