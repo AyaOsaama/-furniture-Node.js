@@ -13,7 +13,7 @@ let {
   updateVariant,
   getLowStockVariants,
   getDiscountedVariantsCount,
-  getTopRatedProducts,getProductsByBrand,getTotalVariants,getTotalProducts
+  getTopRatedProducts,getBrandsCount,getTotalVariants,getTotalProducts
 } = require("../controller/product.controller.js");
 
 //Protect
@@ -37,7 +37,7 @@ router
 
 router.get('/total-products', getTotalProducts);
 router.get('/total-variants', getTotalVariants);
-router.get('/brands-count', getProductsByBrand);
+router.get('/brands-count', getBrandsCount);
 router.get('/top-rated', getTopRatedProducts);
 router.get('/discounted-variants', getDiscountedVariantsCount);
 router.get('/low-stock', getLowStockVariants);

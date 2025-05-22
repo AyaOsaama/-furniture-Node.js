@@ -27,13 +27,14 @@ req.user = { _id: decode.data.id, role: decode.data.role };
 
 exports.restrictTo = (...roles) => {
   return function (req, res, next) {
-    if (!roles.includes(req.role)) {
+    if (!roles.includes(req.user.role)) {
       return res.status(403).json({ message: "you are not authorized" });
     } else {
       next();
     }
   };
 };
+
 exports.validateChangePasswordInput = (req, res, next) => {
   const { oldPassword, newPassword, confirmPassword } = req.body;
   if (!oldPassword || !newPassword || !confirmPassword) {

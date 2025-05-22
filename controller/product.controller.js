@@ -221,16 +221,19 @@ exports.getTotalVariants = catchAsync(async (req, res) => {
   res.status(200).json({ totalVariants: result[0]?.totalVariants || 0 });
 });
 
-exports.getProductsByBrand = catchAsync(async (req, res) => {
+exports.getBrandsCount = catchAsync(async (req, res) => {
   const result = await ProductModel.aggregate([
     {
       $group: {
-        _id: "$brand",
-        count: { $sum: 1 }
+        _id: "$brand"
       }
+    },
+    {
+      $count: "brandsCount"
     }
   ]);
-  res.status(200).json({ brands: result });
+  const brandsCount = result[0]?.brandsCount || 0;
+  res.status(200).json({ brandsCount });
 });
 
 exports.getTopRatedProducts = catchAsync(async (req, res) => {

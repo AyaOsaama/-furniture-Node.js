@@ -43,18 +43,16 @@ const ProductSchema = new mongoose.Schema({
   brand: { type: String },
 
   categories: {
-    main: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
-    sub: { type: mongoose.Schema.Types.ObjectId, ref: 'Subcategory' }
+    main: { type: mongoose.Schema.Types.ObjectId, ref: 'Category'},
+    sub: { type: mongoose.Schema.Types.ObjectId, ref: 'Subcategory'}
   },
 
   searchContent: { type: String },
 
 }, { timestamps: true });
 
-// ✅ Text index
 ProductSchema.index({ searchContent: 'text' });
 
-// ✅ Fill searchContent before saving
 ProductSchema.pre('save', function (next) {
   const variantNames = this.variants.map(v => `${v.name.en} ${v.name.ar}`).join(' ');
   const descriptions = `${this.description.en} ${this.description.ar}`;

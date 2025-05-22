@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const {auth} = require('../Middleware/auth.middleware.js')
 const {
   createRating,
   getAllRatings,
@@ -9,10 +10,11 @@ const {
   getMostRatedProducts,
   getRatingDistribution,
   getAverageRating,
-  getTotalRatings
+  getTotalRatings,
+  deleteCommentFromRating
 } = require("../controller/rating.controller.js");
 
-router.post("/", createRating);
+router.post("/",auth, createRating);
 router.get("/", getAllRatings);
 
 // Analytics Enpoints
@@ -24,6 +26,7 @@ router.get("/with-comments", getRatingsWithComments);
 // ------------------------------------------------------
 router.get("/:id", getRatingById);
 router.delete("/:id", deleteRating);
+router.patch("/:id/remove-comment",auth, deleteCommentFromRating);
 
 
 

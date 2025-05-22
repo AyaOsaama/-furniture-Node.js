@@ -4,25 +4,48 @@ const QueryFeatures = require("../utils/queryFeatures.utils.js");
 const Product = require('../models/product.models.js'); 
 
 exports.createRating = catchAsync(async (req, res) => {
-  const newRating = await Rating.create(req.body);
+  const userId = req.user._id; // المستخدم لازم يكون مسجل دخول
+  const { productId, value, comment } = req.body;
 
-  const ratings = await Rating.find({ productId: newRating.productId });
+  // ✅ 1. التحقق إن المستخدم اشترى المنتج ودفع ثمنه
+  const order = await Order.findOne({
+    userId,
+    paymentStatus: "paid",
+    "products.productId": productId,
+  });
+
+  if (!order) {
+    return res.status(403).json({
+      message: "You can only rate a product you have purchased and paid for.",
+    });
+  }
+
+  // ✅ 2. إنشاء التقييم مع التعليق (comment)
+  const newRating = await Rating.create({
+    userId,
+    productId,
+    value,
+    comment, // هيكون object بالشكل: { en: "Nice!", ar: "جيد!" }
+  });
+
+  // ✅ 3. تحديث متوسط التقييم وعدد التقييمات في المنتج
+  const ratings = await Rating.find({ productId });
 
   const ratingCount = ratings.length;
-
   const averageRating =
     ratings.reduce((acc, r) => acc + r.value, 0) / ratingCount;
 
-  await Product.findByIdAndUpdate(newRating.productId, {
+  await Product.findByIdAndUpdate(productId, {
     averageRating,
     ratingCount,
   });
 
   res.status(201).json({
-    message: 'Rating created and product updated',
+    message: "Rating created with comment",
     rating: newRating,
   });
 });
+
 
 
 exports.getAllRatings = catchAsync(async (req, res) => {
@@ -49,20 +72,43 @@ exports.getAllRatings = catchAsync(async (req, res) => {
 
 exports.getRatingById = catchAsync(async (req, res) => {
   const rating = await Rating.findById(req.params.id)
-    .populate('userId', 'name email') 
+    .populate('userId', 'name email')
     .populate('productId', 'variants description brand');
 
   if (!rating)
     return res.status(404).json({ message: "Rating not found" });
 
-  res.status(200).json(rating);
+  res.status(200).json({
+    message: "Rating fetched successfully",
+    rating,
+    comment: rating.comment, // يظهر الكومنت بشكل منفصل لو حابة
+  });
 });
+
 
 
 exports.deleteRating = catchAsync(async (req, res) => {
-  await Rating.findByIdAndDelete(req.params.id);
-  res.status(204).send();
+  const deleted = await Rating.findByIdAndDelete(req.params.id);
+
+  if (!deleted)
+    return res.status(404).json({ message: "Rating not found or already deleted" });
+
+  res.status(200).json({ message: "Rating (and its comment) deleted successfully" });
 });
+
+
+exports.deleteCommentFromRating = catchAsync(async (req, res) => {
+  const rating = await Rating.findById(req.params.id);
+
+  if (!rating)
+    return res.status(404).json({ message: "Rating not found" });
+
+  rating.comment = {}; // أو { en: "", ar: "" }
+  await rating.save();
+
+  res.status(200).json({ message: "Comment removed from rating", rating });
+});
+
 // Analytics 
 
 
