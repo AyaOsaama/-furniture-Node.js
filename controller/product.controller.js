@@ -310,3 +310,23 @@ exports.getRelatedProductsByTags = async (req, res) => {
   }
 };
 
+exports.getProductsByTag = async (req, res) => {
+  const { tag } = req.params;
+
+  try {
+    // Step 1: Find subcategories that contain the tag
+    const subcategories = await Subcategory.find({ tags: tag }).select('_id');
+
+    const subcategoryIds = subcategories.map(sub => sub._id);
+
+    // Step 2: Find products whose subcategory is one of those
+    const products = await Product.find({
+      'categories.sub': { $in: subcategoryIds }
+    });
+
+    res.status(200).json(products);
+  } catch (err) {
+    console.error('Error getting products by tag:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

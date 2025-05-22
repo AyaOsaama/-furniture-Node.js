@@ -14,7 +14,8 @@ let {
   getLowStockVariants,
   getDiscountedVariantsCount,
   getTopRatedProducts,getBrandsCount,getTotalVariants,getTotalProducts,
-  getRelatedProductsByTags
+  getRelatedProductsByTags,
+  getProductsByTag
 } = require("../controller/product.controller.js");
 
 //Protect
@@ -43,6 +44,7 @@ router.get('/top-rated', getTopRatedProducts);
 router.get('/discounted-variants', getDiscountedVariantsCount);
 router.get('/low-stock', getLowStockVariants);
 router.get('/related/:productId', getRelatedProductsByTags);
+router.get('/tag/:tag', getProductsByTag);
 
 // -----------------------
 router.route("/:id")
