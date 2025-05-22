@@ -46,13 +46,11 @@ exports.createRating = catchAsync(async (req, res) => {
   });
 });
 
-
-
 exports.getAllRatings = catchAsync(async (req, res) => {
   const totalCount = await Rating.countDocuments();
 
   const features = new QueryFeatures(
-    Rating.find().populate('userId', 'name email') 
+    Rating.find().populate('userId', 'userName email') 
                 .populate('productId', 'variants description brand'), 
     req.query
   )
@@ -85,8 +83,6 @@ exports.getRatingById = catchAsync(async (req, res) => {
   });
 });
 
-
-
 exports.deleteRating = catchAsync(async (req, res) => {
   const deleted = await Rating.findByIdAndDelete(req.params.id);
 
@@ -95,7 +91,6 @@ exports.deleteRating = catchAsync(async (req, res) => {
 
   res.status(200).json({ message: "Rating (and its comment) deleted successfully" });
 });
-
 
 exports.deleteCommentFromRating = catchAsync(async (req, res) => {
   const rating = await Rating.findById(req.params.id);
@@ -110,7 +105,6 @@ exports.deleteCommentFromRating = catchAsync(async (req, res) => {
 });
 
 // Analytics 
-
 
 // 1. عدد التقييمات الكلي
 exports.getTotalRatings = catchAsync(async (req, res) => {
