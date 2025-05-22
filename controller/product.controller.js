@@ -314,13 +314,15 @@ exports.getProductsByTag = async (req, res) => {
   const { tag } = req.params;
 
   try {
-    const subcategories = await Subcategory.find({ tags: tag }).select('_id');
+    // ابحث عن subcategories التي تحوي هذا التاج داخل مصفوفة التاجات
+    const subcategories = await Subcategory.find({ tags: { $in: [tag] } }).select('_id');
     const subcategoryIds = subcategories.map(sub => sub._id);
 
     if (subcategoryIds.length === 0) {
       return res.status(200).json([]);
     }
 
+    // ابحث عن المنتجات التي تحتوي على أي من هذه الـ subcategories في الحقل categories.sub
     const products = await Product.find({
       'categories.sub': { $in: subcategoryIds }
     });
