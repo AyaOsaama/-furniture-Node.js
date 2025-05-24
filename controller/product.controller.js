@@ -57,11 +57,12 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
   const totalCount = await ProductModel.countDocuments();
   const features = new QueryFeatures(ProductModel.find(), req.query)
     .search()
-    .filter()
+    .filter();
     // .paginate();
+
   const products = await features.query.populate(
     "categories.main categories.sub",
-    "-name"
+    // "name"   // <-- هنا طلبت حقل الاسم فقط، بدون -
   );
 
   res.status(200).json({
@@ -71,6 +72,16 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
     products,
   });
 });
+
+exports.getProductById = catchAsync(async (req, res, next) => {
+  const product = await ProductModel.findById(req.params.id).populate(
+    "categories.main categories.sub",
+    "name"   // نفس التعديل هنا
+  );
+  if (!product) return next(new ApiError(404, "Product not found"));
+  res.status(200).json({ message: "success", product });
+});
+
 
 exports.getProductById = catchAsync(async (req, res, next) => {
   const product = await ProductModel.findById(req.params.id).populate(
