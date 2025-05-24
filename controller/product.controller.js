@@ -299,12 +299,13 @@ exports.getRelatedProductsByTags = async (req, res) => {
   try {
     const { productId } = req.params;
 
-    // 1. Get the current product
-    const currentProduct = await ProductModel.findById(productId);
+    // 1. Get the current product مع populated categories
+    const currentProduct = await ProductModel.findById(productId)
+      .populate("categories.main categories.sub", "name tags");
     if (!currentProduct) return res.status(404).json({ message: "Product not found" });
 
     // 2. Get the subcategory and its tags
-    const subcategory = await Subcategory.findById(currentProduct.categories.sub);
+    const subcategory = await Subcategory.findById(currentProduct.categories.sub._id);
     if (!subcategory || !subcategory.tags || subcategory.tags.length === 0) {
       return res.json([]); // No tags, return empty list
     }
@@ -316,11 +317,11 @@ exports.getRelatedProductsByTags = async (req, res) => {
 
     const relatedSubcategoryIds = relatedSubcategories.map(sc => sc._id);
 
-    // 4. Get related products that are not the current product
+    // 4. Get related products that are not the current product مع populated categories
     const relatedProducts = await ProductModel.find({
       _id: { $ne: currentProduct._id },
       "categories.sub": { $in: relatedSubcategoryIds }
-    });
+    }).populate("categories.main categories.sub", "name tags");
 
     res.json(relatedProducts);
   } catch (error) {
@@ -328,6 +329,7 @@ exports.getRelatedProductsByTags = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 exports.getProductsByTag = async (req, res) => {
   const { tag } = req.params;
@@ -346,7 +348,7 @@ exports.getProductsByTag = async (req, res) => {
 
     const products = await Product.find({
       'categories.sub': { $in: subcategoryIds }
-    });
+    }).populate("categories.main categories.sub", "name tags");
 
     console.log('Products:', products.length);
     res.status(200).json(products);
