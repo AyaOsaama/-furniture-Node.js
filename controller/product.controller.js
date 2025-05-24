@@ -60,10 +60,17 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
     .filter();
     // .paginate();
 
-  const products = await features.query.populate(
-    "categories.main categories.sub",
-    // "name"   // <-- هنا طلبت حقل الاسم فقط، بدون -
-  );
+ const products = await features.query.populate([
+  {
+    path: 'categories.main',
+    select: 'name'
+  },
+  {
+    path: 'categories.sub',
+    select: 'name tags'
+  }
+]);
+
 
   res.status(200).json({
     message: "All products",
