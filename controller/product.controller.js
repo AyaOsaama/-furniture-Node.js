@@ -55,22 +55,22 @@ if (parsedVariants.length > 0) {
 
 exports.getAllProducts = catchAsync(async (req, res, next) => {
   const totalCount = await ProductModel.countDocuments();
+
   const features = new QueryFeatures(ProductModel.find(), req.query)
     .search()
     .filter();
-    // .paginate();
+    // .paginate(); // فعّليه لو بتستخدمي pagination
 
- const products = await features.query.populate([
-  {
-    path: 'categories.main',
-    select: 'name'
-  },
-  {
-    path: 'categories.sub',
-    select: 'name tags'
-  }
-]);
-
+  const products = await features.query.populate([
+    {
+      path: 'categories.main',
+      select: 'name'
+    },
+    {
+      path: 'categories.sub',
+      select: 'name tags'
+    }
+  ]);
 
   res.status(200).json({
     message: "All products",
