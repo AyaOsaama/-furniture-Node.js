@@ -3,10 +3,52 @@ const ApiError = require("../utils/ApiError.utils.js");
 const catchAsync = require("../utils/catchAsync.utils.js");
 const QueryFeatures = require("../utils/queryFeatures.utils.js");
 const { uploadBufferToCloudinary } = require("../utils/cloudinary.utils.js");
-// controllers/productController.js
 const Product = require('../models/product.models.js');  
-
 const Subcategory = require("../models/subcategory.model.js");
+
+exports.createProduct = catchAsync(async (req, res, next) => {
+  console.log('req.body:', req.body);
+  console.log('req.files:', req.files);
+
+  const { brand, categories, description, material, variants } = req.body;
+
+  const parsedCategories = categories ? JSON.parse(categories) : { main: '', sub: '' };
+  const parsedDescription = description ? JSON.parse(description) : { en: '', ar: '' };
+  const parsedMaterial = material ? JSON.parse(material) : { en: '', ar: '' };
+  const parsedVariants = variants ? JSON.parse(variants) : [];
+
+  if (!Array.isArray(parsedVariants)) {
+    return next(new ApiError('Variants must be an array', 400));
+  }
+
+  const mainVariantImage = req.files?.variantImage?.[0]
+    ? await uploadBufferToCloudinary(req.files.variantImage[0].buffer)
+    : null;
+
+  const additionalVariantImages = req.files?.variantImages?.length > 0
+    ? await Promise.all(req.files.variantImages.map(file => uploadBufferToCloudinary(file.buffer)))
+    : [];
+
+  if (parsedVariants.length > 0) {
+    parsedVariants[0].image = mainVariantImage;
+    parsedVariants[0].images = additionalVariantImages;
+  }
+
+
+  const newProductModel = new ProductModel({
+    brand,
+    categories: parsedCategories,
+    description: parsedDescription,
+    material: parsedMaterial,
+    variants: parsedVariants
+  })
+  const newProduct = await newProductModel.save();
+  res.status(201).json({
+    message: "Product created successfully",
+    product: newProduct
+  });
+
+});
 
 exports.updateProduct = catchAsync(async (req, res, next) => {
   console.log("req.body:", req.body);
@@ -104,18 +146,7 @@ exports.getProductById = catchAsync(async (req, res, next) => {
 });
 
 
-exports.updateProduct = catchAsync(async (req, res, next) => {
-  const product = await ProductModel.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    {
-      new: true,
-      runValidators: true,
-    }
-  );
-  if (!product) return next(new ApiError(404, "Product not found"));
-  res.status(200).json({ message: "Product updated", product });
-});
+
 
 exports.deleteProduct = catchAsync(async (req, res, next) => {
   const product = await ProductModel.findByIdAndDelete(req.params.id);
