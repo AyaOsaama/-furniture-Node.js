@@ -8,48 +8,62 @@ const Product = require('../models/product.models.js');
 
 const Subcategory = require("../models/subcategory.model.js");
 
-exports.createProduct = catchAsync(async (req, res, next) => {
-  console.log('req.body:', req.body);
-  console.log('req.files:', req.files);
+exports.updateProduct = catchAsync(async (req, res, next) => {
+  console.log("req.body:", req.body);
+  console.log("req.files:", req.files);
 
-  const { brand, categories, description, material, variants } = req.body;
+  const { brand, categories, description, material } = req.body;
+  let { variants } = req.body; // استقبل الـ variants كـ String
 
   const parsedCategories = categories ? JSON.parse(categories) : { main: '', sub: '' };
   const parsedDescription = description ? JSON.parse(description) : { en: '', ar: '' };
   const parsedMaterial = material ? JSON.parse(material) : { en: '', ar: '' };
-  const parsedVariants = variants ? JSON.parse(variants) : [];
 
-  if (!Array.isArray(parsedVariants)) {
-    return next(new ApiError('Variants must be an array', 400));
+
+  let parsedVariants = [];
+  try {
+    const parsed = JSON.parse(variants);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      parsedVariants = parsed;
+    } else if (typeof parsed === 'object' && parsed !== null) {
+      parsedVariants = [parsed];
+    } else if (typeof variants === 'string' && variants === "") {
+      parsedVariants = [];
+    } else {
+      return next(new ApiError('Invalid variants format', 400));
+    }
+  } catch (error) {
+    return next(new ApiError('Invalid variants format', 400));
   }
 
   const mainVariantImage = req.files?.variantImage?.[0]
-  ? await uploadBufferToCloudinary(req.files.variantImage[0].buffer)
-  : null;
+    ? await uploadBufferToCloudinary(req.files.variantImage[0].buffer)
+    : null;
 
-const additionalVariantImages = req.files?.variantImages?.length > 0
-  ? await Promise.all(req.files.variantImages.map(file => uploadBufferToCloudinary(file.buffer)))
-  : [];
+  const additionalVariantImages = req.files?.variantImages?.length > 0
+    ? await Promise.all(req.files.variantImages.map(file => uploadBufferToCloudinary(file.buffer)))
+    : [];
 
-if (parsedVariants.length > 0) {
-  parsedVariants[0].image = mainVariantImage;
-  parsedVariants[0].images = additionalVariantImages;
-}
+  if (parsedVariants.length > 0) {
+    if (mainVariantImage) parsedVariants[0].image = mainVariantImage;
+    if (additionalVariantImages.length > 0) parsedVariants[0].images = additionalVariantImages;
+  }
 
+  const updatedProduct = await ProductModel.findByIdAndUpdate(
+    req.params.id,
+    {
+      brand,
+      categories: parsedCategories,
+      description: parsedDescription,
+      material: parsedMaterial,
+      variants: parsedVariants // استخدم الـ Array اللي تم تحليله
+    },
+    { new: true, runValidators: true }
+  );
 
-   const newProductModel= new ProductModel({
-    brand,
-    categories: parsedCategories,
-    description: parsedDescription,
-    material: parsedMaterial,
-   variants: parsedVariants
-    })
-    const newProduct = await newProductModel.save();
-  res.status(201).json({
-    message: "Product created successfully",
-    product: newProduct
-  });
+  if (!updatedProduct) return next(new ApiError(404, "Product not found"));
 
+  res.status(200).json({ message: "Product updated", product: updatedProduct });
 });
 
 
@@ -90,15 +104,6 @@ exports.getProductById = catchAsync(async (req, res, next) => {
 });
 
 
-exports.getProductById = catchAsync(async (req, res, next) => {
-  const product = await ProductModel.findById(req.params.id).populate(
-    "categories.main categories.sub",
-    "-name"
-  );
-  if (!product) return next(new ApiError(404, "Product not found"));
-  res.status(200).json({ message: "success", product });
-});
-
 exports.updateProduct = catchAsync(async (req, res, next) => {
   const product = await ProductModel.findByIdAndUpdate(
     req.params.id,
@@ -114,29 +119,51 @@ exports.updateProduct = catchAsync(async (req, res, next) => {
 
 exports.deleteProduct = catchAsync(async (req, res, next) => {
   const product = await ProductModel.findByIdAndDelete(req.params.id);
+  console.log(`[DELETE PRODUCT] جاري محاولة حذف المنتج بالمعرف: ${product}`);
+
   if (!product) return next(new ApiError(404, "Product not found"));
   res.status(200).json({ message: "Product deleted" });
 });
 
+
 exports.addVariant = catchAsync(async (req, res, next) => {
   const product = await ProductModel.findById(req.params.id);
-  if (!product) return next(new ApiError(404, "Product not found"));
+  if (!product) {
+    return next(new ApiError(404, "Product not found"));
+  }
 
-  // Parse values from req.body
   const {
-    price,
-    discountPrice,
-    material,
-    description,
-    ...rest
+    name,          
+    color,         
+    price,         
+    discountPrice, 
+    inStock,       
   } = req.body;
 
-  const parsedMaterial = material ? JSON.parse(material) : { en: '', ar: '' };
-  const parsedDescription = description ? JSON.parse(description) : { en: '', ar: '' };
+  let parsedName;
+  let parsedColor;
 
-  if (discountPrice && discountPrice >= price) {
+  try {
+    parsedName = name ? JSON.parse(name) : {}; 
+    parsedColor = color ? JSON.parse(color) : {}; 
+  } catch (error) {
+    return next(new ApiError(400, 'Invalid JSON format for name or color.'));
+  }
+
+  
+  const newVariantData = {
+    name: parsedName,
+    price: Number(price), 
+    color: parsedColor,
+    inStock: Number(inStock),
+    discountPrice: discountPrice ? Number(discountPrice) : undefined, 
+  };
+
+
+  if (newVariantData.discountPrice !== undefined && newVariantData.discountPrice >= newVariantData.price) {
     return next(new ApiError(400, "Discount price must be less than the actual price"));
   }
+
 
   let image = null;
   if (req.files?.image?.[0]) {
@@ -150,17 +177,19 @@ exports.addVariant = catchAsync(async (req, res, next) => {
     );
   }
 
-  product.variants.push({
-    ...rest,
-    price,
-    discountPrice,
-    material: parsedMaterial,
-    description: parsedDescription,
-    image,
-    images,
-  });
+ 
+  if (image) {
+    newVariantData.image = image;
+  }
+  if (images.length > 0) {
+    newVariantData.images = images;
+  }
 
-  await product.save();
+
+  product.variants.push(newVariantData);
+
+  await product.save(); 
+
   res.status(200).json({ message: "Variant added", product });
 });
 
@@ -174,57 +203,109 @@ exports.deleteVariant = catchAsync(async (req, res, next) => {
   const variant = product.variants.id(variantId);
   if (!variant) return next(new ApiError(404, "Variant not found"));
 
-  variant.remove();
+  // variant.remove();
+  await variant.deleteOne(); // قم بإزالة الفاريانت من المصفوفة
   await product.save();
 
   res.status(200).json({ message: "Variant deleted", product });
 });
 
+
 exports.updateVariant = catchAsync(async (req, res, next) => {
   const product = await ProductModel.findById(req.params.id);
-  if (!product) return next(new ApiError(404, "Product not found"));
+  if (!product) {
+    return next(new ApiError(404, "Product not found"));
+  }
 
   const variant = product.variants.id(req.params.variantId);
-  if (!variant) return next(new ApiError(404, "Variant not found"));
+  if (!variant) {
+    return next(new ApiError(404, "Variant not found"));
+  }
 
   const {
+    name,
+    color,
     price,
     discountPrice,
-    material,
-    description,
-    ...rest
+    inStock,
+    removeMainImage, // لحذف الصورة الرئيسية
+    retainedImages // للاحتفاظ بالصور الإضافية القديمة
   } = req.body;
 
-  const parsedMaterial = material ? JSON.parse(material) : variant.material;
-  const parsedDescription = description ? JSON.parse(description) : variant.description;
+  let parsedName;
+  let parsedColor;
 
-  const updated = {
-    ...variant.toObject(),
-    ...rest,
-    price,
-    discountPrice,
-    material: parsedMaterial,
-    description: parsedDescription,
-  };
+  try {
+    // 4. تحليل البيانات النصية (name, color)
+    // استخدم القيمة الموجودة في الفاريانت كـ fallback لو لم يتم إرسال قيمة جديدة
+    parsedName = name ? JSON.parse(name) : variant.name;
+    parsedColor = color ? JSON.parse(color) : variant.color;
+  } catch (error) {
+    console.error("Error parsing name or color JSON:", error); // سجل الخطأ للمراجعة
+    return next(new ApiError(400, 'Invalid JSON format for name or color.'));
+  }
 
-  if (updated.discountPrice && updated.discountPrice >= updated.price) {
+  // 5. تحديث خصائص الفاريانت مباشرة
+  // تأكد من تحديث كل حقل تم إرساله
+  if (name !== undefined) variant.name = parsedName;
+  if (color !== undefined) variant.color = parsedColor;
+  if (price !== undefined) variant.price = Number(price);
+  if (inStock !== undefined) variant.inStock = Number(inStock);
+
+  // تحديث سعر الخصم. إذا لم يتم إرساله أو كان فارغًا، اجعله undefined
+  variant.discountPrice = (discountPrice !== undefined && discountPrice !== '') ? Number(discountPrice) : undefined;
+
+
+  // 6. التحقق من صحة السعر المخفض
+  if (variant.discountPrice !== undefined && variant.discountPrice >= variant.price) {
     return next(new ApiError(400, "Discount price must be less than the actual price"));
   }
 
+  // 7. التعامل مع الصورة الرئيسية (Main Image)
   if (req.files?.image?.[0]) {
-    updated.image = await uploadBufferToCloudinary(req.files.image[0].buffer);
+    // لو تم رفع صورة رئيسية جديدة
+    variant.image = await uploadBufferToCloudinary(req.files.image[0].buffer);
+  } else if (removeMainImage === 'true' && variant.image) {
+    // لو تم طلب حذف الصورة الرئيسية وكانت موجودة
+    // هنا يمكنك إضافة كود لحذف الصورة من Cloudinary إذا أردت
+    // مثال: await deleteImageFromCloudinary(variant.image.public_id);
+    variant.image = null; // اجعلها null في الداتابيز
   }
+  // لو لم يتم إرسال صورة جديدة ولم يتم طلب حذف، ستبقى الصورة القديمة كما هي (variant.image)
 
+
+  // 8. التعامل مع الصور الإضافية (Additional Images)
+  let newAdditionalImages = [];
   if (req.files?.images?.length > 0) {
-    updated.images = await Promise.all(
+    // رفع الصور الإضافية الجديدة
+    newAdditionalImages = await Promise.all(
       req.files.images.map(file => uploadBufferToCloudinary(file.buffer))
     );
   }
 
-  Object.assign(variant, updated);
+  let retainedVariantImages = [];
+  if (retainedImages) {
+    try {
+      // الـ Frontend بيرسل retainedImages كـ JSON string من الـ URLs
+      const parsedRetainedImages = JSON.parse(retainedImages);
+      if (Array.isArray(parsedRetainedImages)) {
+        // فلترة الصور الموجودة بالفعل في الفاريانت والتي تم طلب الاحتفاظ بها
+        retainedVariantImages = variant.images.filter(img => parsedRetainedImages.includes(img.url));
+      }
+    } catch (error) {
+      console.error("Error parsing retainedImages JSON:", error);
+      // يمكنك إرسال خطأ للـ frontend أو تجاهل المشكلة هنا
+    }
+  }
+  // دمج الصور القديمة التي تم الاحتفاظ بها مع الصور الجديدة التي تم رفعها
+  variant.images = [...retainedVariantImages, ...newAdditionalImages];
+
+
+  // 9. حفظ المنتج بعد التعديلات (هذا سيحفظ الفاريانت أيضاً)
   await product.save();
 
-  res.status(200).json({ message: "Variant updated", product });
+  // 10. إرسال الاستجابة: استخدم .toObject() لتجنب مشكلة الـ Circular Reference
+  res.status(200).json({ message: "Variant updated", product: product.toObject() });
 });
 
 

@@ -49,7 +49,10 @@ router.get('/tag/:tag', getProductsByTag);
 // -----------------------
 router.route("/:id")
   .get(getProductById)
-  .patch(updateProduct)
+.patch(upload.fields([
+      { name: "variantImage", maxCount: 1 },
+      { name: "variantImages", maxCount: 5 },
+    ]),updateProduct)
   .delete(deleteProduct);
 
 router.post(
@@ -70,7 +73,5 @@ router.patch(
   updateVariant
 );
 
-
-module.exports = router;
 
 module.exports = router;
