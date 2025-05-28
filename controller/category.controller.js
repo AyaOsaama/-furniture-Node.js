@@ -7,19 +7,17 @@ const { uploadBufferToCloudinary } = require("../utils/cloudinary.utils");
 
 
 exports.createCategory = catchAsync(async (req, res) => {
-  console.log('====================================');
-  console.log(Req.res);
-  console.log('====================================');
+  
   let imageUrl = '';
-
+ 
   if (req.file && req.file.buffer) {
     imageUrl = await uploadBufferToCloudinary(req.file.buffer, 'categories');
   }
-
+ 
   let parsedName = { en: '', ar: '' };
   let parsedDescription = { en: '', ar: '' };
   let parsedSubcategoriesId = [];
-
+ 
   try {
     if (req.body.name) {
       parsedName = JSON.parse(req.body.name);
@@ -33,16 +31,17 @@ exports.createCategory = catchAsync(async (req, res) => {
   } catch (err) {
     return res.status(400).json({ message: 'Invalid JSON in name, description, or subcategoriesId' });
   }
-
+ 
   const category = await Category.create({
     image: imageUrl,
     name: parsedName,
     description: parsedDescription,
     subcategoriesId: parsedSubcategoriesId,
   });
-
+ 
   res.status(201).json(category);
 });
+ 
 
 
 
