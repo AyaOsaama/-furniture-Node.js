@@ -6,10 +6,10 @@ const Order = require('../models/order.models.js');
 
 // إنشاء تقييم
 exports.createRating = catchAsync(async (req, res) => {
-  const userId = req.user._id; // المستخدم لازم يكون مسجل دخول
+  const userId = req.user._id;
   const { productId, value, comment } = req.body;
 
-  // ✅ 1. التحقق إن المستخدم اشترى المنتج ودفع ثمنه
+  // 1. التحقق أن المستخدم اشترى المنتج
   const order = await Order.findOne({
     userId,
     paymentStatus: "paid",
@@ -22,68 +22,38 @@ exports.createRating = catchAsync(async (req, res) => {
     });
   }
 
-  // ✅ 2. التأكد من أن المستخدم لم يقيّم هذا المنتج مسبقًا
+  // 2. التأكد من أن المستخدم لم يقيّم هذا المنتج مسبقًا
   const existing = await Rating.findOne({ userId, productId });
   if (existing) {
     return res.status(400).json({ message: "You have already rated this product." });
   }
 
-  // ✅ 3. إنشاء التقييم مع التعليق (comment)
+  // 3. إنشاء التقييم
   const newRating = await Rating.create({
     userId,
     productId,
     value,
-    comment, // { en: "Nice!", ar: "جيد!" }
+    comment,
   });
 
-  // ✅ 4. تحديث متوسط التقييم وعدد التقييمات في المنتج
+  // 4. تحديث متوسط التقييم وعدد التقييمات
   const ratings = await Rating.find({ productId });
-
   const ratingCount = ratings.length;
   const averageRating =
     ratings.reduce((acc, r) => acc + r.value, 0) / ratingCount;
 
-  await Product.findByIdAndUpdate(productId, {
-    averageRating,
-    ratingCount,
-  });
+  const product = await Product.findById(productId);
+  if (product && product.variants.length > 0) {
+    product.variants[0].averageRating = averageRating;
+    product.variants[0].ratingCount = ratingCount;
+    await product.save();
+  }
 
   res.status(201).json({
     message: "Rating created with comment",
     rating: newRating,
   });
 });
-
-// استرجاع التقييمات لمنتج معين والتحقق إذا المستخدم يقدر يقيّم
-exports.getRatingsForProduct = catchAsync(async (req, res) => {
-  const { productId } = req.params;
-  const userId = req.user?._id;
-
-  // 1. استرجاع التقييمات لهذا المنتج
-  const ratings = await Rating.find({ productId });
-
-  // 2. التحقق من إمكانية التقييم
-  let canRate = false;
-  if (userId) {
-    const order = await Order.findOne({
-      userId,
-      paymentStatus: "paid",
-      "products.productId": productId,
-    });
-
-    const alreadyRated = await Rating.findOne({ userId, productId });
-
-    if (order && !alreadyRated) {
-      canRate = true;
-    }
-  }
-
-  res.status(200).json({
-    ratings,
-    canRate,
-  });
-});
-
 exports.getRatingsForProduct = catchAsync(async (req, res) => {
   const { productId } = req.params;
   const userId = req.user?._id;
