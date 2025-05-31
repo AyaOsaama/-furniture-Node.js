@@ -17,8 +17,8 @@ exports.auth = async (req, res, next) => {
     let decode = await promisify(jwt.verify)(token, process.env.SECRET);
     console.log("Decode", decode);
 
-req.user = { _id: decode.data.id, role: decode.data.role };
-    next();
+  req.user = { _id: decode.id, role: decode.role };
+      next();
   } catch (err) {
     res.status(401).json({ message: "you are not authenticated" });
   }
