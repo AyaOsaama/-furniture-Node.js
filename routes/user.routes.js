@@ -33,7 +33,7 @@ router
   
 router.patch(
   "/changePassword",
-  auth,
+
   validateChangePasswordInput,
   changePassword
 );

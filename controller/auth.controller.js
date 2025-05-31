@@ -35,6 +35,8 @@ const parsedAddress = typeof address === 'string' ? JSON.parse(address) : { en: 
     image: imageUrl,
     verificationToken,
   });
+  console.log("Sending verification email to:", email);
+
 
   await sendVerificationEmail(email, verificationToken);
 
