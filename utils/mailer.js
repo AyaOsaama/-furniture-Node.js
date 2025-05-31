@@ -12,7 +12,7 @@ const transport=mailer.createTransport({
     }
 })
 const sendVerificationEmail = (email, token) => {
-    const link = `http://localhost:3000/auth/verify/${token}`;
+    const link = `ttps://furniture-nodejs-production-665a.up.railway.app/auth/verify/${token}`;
   
     return transport.sendMail({
       from: process.env.EMAIL_USER,

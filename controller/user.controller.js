@@ -83,7 +83,7 @@ exports.updateUserById = catchAsync(async (req, res, next) => {
 
 
 exports.changePassword = catchAsync(async (req, res, next) => {
-const id = req.user.id || req.user._id || req.id;
+  const id = req.user.id || req.user._id || req.id;
   const { oldPassword, newPassword, confirmPassword } = req.body;
 
   const user = await userModel.findById(id);
@@ -102,13 +102,12 @@ const id = req.user.id || req.user._id || req.id;
     return next(new ApiError(400, "Password must be at least 8 characters"));
   }
 
-  const salt = await bcrypt.genSalt(10);
-  user.password = await bcrypt.hash(newPassword, salt);
-
+  user.password = newPassword; // سيبه كده، pre('save') هيشفره
   await user.save();
 
   res.status(200).json({ message: "Password updated successfully" });
 });
+
 
 // GET /api/users/count
 exports.getAllUsersCount = catchAsync(async (req, res, next) => {
