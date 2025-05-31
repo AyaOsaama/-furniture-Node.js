@@ -17,7 +17,7 @@ let {
 const upload = require("../utils/multer.utils.js");
 
 //Protect
-// router.use(auth);
+router.use(auth);
 
 //EndPoints
 router.patch("/me", upload.single("image"), updateMe);
