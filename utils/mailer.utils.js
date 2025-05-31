@@ -13,7 +13,7 @@ const transport = mailer.createTransport({
 });
 
 const sendVerificationEmail = (email, token) => {
-  const link = `https://furniture-nodejs-production-665a.up.railway.appauth/verify/${token}`;
+  const link = `https://furniture-nodejs-production-665a.up.railway.app/auth/verify/${token}`;
 
   return transport.sendMail({
     from: process.env.EMAIL_USER,
