@@ -83,7 +83,7 @@ exports.updateUserById = catchAsync(async (req, res, next) => {
 
 
 exports.changePassword = catchAsync(async (req, res, next) => {
-  const id = req.user.id || req.user._id || req.id;
+  const id = req.user._id; // استخدام _id فقط
   const { oldPassword, newPassword, confirmPassword } = req.body;
 
   const user = await userModel.findById(id);
@@ -93,16 +93,14 @@ exports.changePassword = catchAsync(async (req, res, next) => {
   if (!isMatch) return next(new ApiError(401, "Old password is incorrect"));
 
   if (newPassword !== confirmPassword) {
-    return next(
-      new ApiError(400, "New password and confirmation do not match")
-    );
+    return next(new ApiError(400, "New password and confirmation do not match"));
   }
 
   if (newPassword.length < 8) {
     return next(new ApiError(400, "Password must be at least 8 characters"));
   }
 
-  user.password = newPassword; // سيبه كده، pre('save') هيشفره
+  user.password = newPassword;
   await user.save();
 
   res.status(200).json({ message: "Password updated successfully" });
