@@ -18,7 +18,9 @@ mongoose
   .catch((err) => {
     console.error("Failed to connect to the database:", err);
   });
-app.use(cors())
+app.use(cors({
+  origin: "*"
+}))
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument,{
